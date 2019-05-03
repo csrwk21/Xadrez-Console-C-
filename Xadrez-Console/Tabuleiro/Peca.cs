@@ -20,6 +20,7 @@
             qtdMovimentos++;
         }
 
+        // checa se há movimentos possíveis
         public bool existeMovimentosPossiveis()
         {
             bool[,] mat = movimentosPossiveis();
