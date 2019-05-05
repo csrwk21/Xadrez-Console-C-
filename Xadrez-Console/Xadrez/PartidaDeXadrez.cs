@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System;
 using tabuleiro;
 
 namespace Xadrez
@@ -63,6 +62,10 @@ namespace Xadrez
             if (estaEmXeque(adversaria(jogadorAtual)))
             {
                 xeque = true;
+            }
+            if (testeXequeMate(adversaria(jogadorAtual)))
+            {
+                terminada = true;
             }
             else
             {
@@ -177,6 +180,38 @@ namespace Xadrez
             }
             return false;
         }
+
+        public  bool testeXequeMate(Cor cor)
+        {
+            if (!estaEmXeque(cor))
+            {
+                return false;
+            }
+
+            foreach(Peca x in pecasEmJogo(cor))
+            {
+                bool[,] mat = x.movimentosPossiveis();
+                for(int i =0; i < tab.linhas; i++)
+                {
+                    for(int j = 0; j < tab.colunas; j++)
+                    {
+                        if (mat[i, j])
+                        {
+                            Posicao origem = x.posicao;
+                            Posicao destino = new Posicao(i, j);
+                            Peca pecaCapturada = executaMovimento(origem, destino);
+                            bool testeXeque = estaEmXeque(cor);
+                            desfazMovimento(origem, destino, pecaCapturada);
+                            if (!testeXeque)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
         public void colocarNovaPeca(char coluna, int linha, Peca peca)
         {
             tab.colocarPeca(peca, new PosicaoXadrez(coluna, linha).toPosicao());
@@ -198,9 +233,6 @@ namespace Xadrez
             colocarNovaPeca('e', 7, new Torre(tab, Cor.preto));
             colocarNovaPeca('e', 8, new Torre(tab, Cor.preto));
             colocarNovaPeca('d', 8, new Rei(tab, Cor.preto));
-
-
-
         }
     }
 }
