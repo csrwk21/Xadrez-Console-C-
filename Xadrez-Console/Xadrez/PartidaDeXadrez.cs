@@ -12,6 +12,7 @@ namespace Xadrez
         private HashSet<Peca> pecas;
         private HashSet<Peca> capturadas;
         public bool xeque { get; private set; }
+        public Peca vulneravelEnPassant { get; private set; }
 
         public PartidaDeXadrez()
         {
@@ -21,6 +22,7 @@ namespace Xadrez
             terminada = false;
             xeque = false;
             pecas = new HashSet<Peca>();
+            vulneravelEnPassant = null;
             capturadas = new HashSet<Peca>();
             colocarPecas();
         }
@@ -52,6 +54,26 @@ namespace Xadrez
                 Peca T = tab.retirarPeca(origemT);
                 T.incrementarQteMovimentos();
                 tab.colocarPeca(T, destinoT);
+            }
+
+            //#jogadaEspecial En Passant
+            if(p is Peao)
+            {
+                if(origem.coluna != destino.coluna && pecaCapturada == null)
+                {
+                    Posicao posP;
+                    if(p.cor == Cor.branca)
+                    {
+                        posP = new Posicao(destino.linha + 1,destino.coluna);
+                    }
+                    else
+                    {
+                        posP = new Posicao(destino.linha = 1, destino.coluna);
+                    }
+
+                    pecaCapturada = tab.retirarPeca(posP);
+                    capturadas.Add(pecaCapturada);
+                }
             }
             return pecaCapturada;
         }
@@ -86,6 +108,24 @@ namespace Xadrez
                 T.decrementarQteMovimentos();
                 tab.colocarPeca(T, origemT);
             }
+            //#JogadaEspecial En Passant
+            if( p is Peao)
+            {
+                if(origem.coluna != destino.coluna && pecaCapturada == vulneravelEnPassant) 
+                {
+                    Peca peao = tab.retirarPeca(destino);
+                    Posicao posP;
+                    if(p.cor == Cor.branca)
+                    {
+                        posP = new Posicao(3, destino.coluna);
+                    }
+                    else
+                    {
+                        posP = new Posicao(4, destino.coluna);
+                    }
+                    tab.colocarPeca(peao, posP);
+                }
+            }
         }
         public void realizaJogada(Posicao origem, Posicao destino)
         {
@@ -107,10 +147,20 @@ namespace Xadrez
             }
             else
             {
-                xeque = false;
+                turno++;
+                mudaJogador();
             }
-            turno++;
-            mudaJogador();
+
+            Peca p = tab.peca(destino);
+            //#JogadaEspecial En Passant
+            if(p is Peao && (destino.linha == origem.linha -2 || destino.linha == origem.linha + 2))
+            {
+                vulneravelEnPassant = p;
+            }
+            else
+            {
+                vulneravelEnPassant = null;
+            }
         }
 
         public void validarPosicaoDeOrigem(Posicao pos)
